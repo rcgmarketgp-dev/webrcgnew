@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* IRANYekan Font Declarations (300/400/500/700/800) with Vazirmatn visible fallback */
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekan-300.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekan-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekan-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekan-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekan-800.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* 10-step Navy Scale */
+  --navy-50: #eff4fb;
+  --navy-100: #dce7f6;
+  --navy-200: #bdd1ed;
+  --navy-300: #8fb2e0;
+  --navy-400: #5a89cc;
+  --navy-500: #3366b0;
+  --navy-600: #1e4a8a;
+  --navy-700: #163b72;
+  --navy-800: #12315f;
+  --navy-900: #0b1f3d;
+  --navy-950: #071429;
+
+  /* Orange Accent (used sparingly ~10%) */
+  --accent-500: #f26a1b;
+  --accent-400: #ff8a3d;
+  --accent-600: #c2500e;
+
+  /* Semantic Status (distinct from orange) */
+  --status-success: #16a34a;
+  --status-warning: #eab308;
+  --status-error: #dc2626;
+
+  /* Editor Font Stack */
+  --editor-font: 'IRANYekan', 'Vazirmatn', Tahoma, system-ui, sans-serif;
+
+  /* Live Site Design Tokens (updated dynamically by Global Theme Panel) */
+  --site-primary: #12315f;
+  --site-primary-hover: #1e4a8a;
+  --site-primary-dark: #0b1f3d;
+  --site-accent: #f26a1b;
+  --site-accent-hover: #ff8a3d;
+  --site-bg: #0b1f3d;
+  --site-surface: #12284a;
+  --site-text: #f1f5f9;
+  --site-muted: #94a3b8;
+  --site-border: rgba(148, 163, 184, 0.2);
+  --site-radius: 12px;
+  --site-font-heading: 'IRANYekan', 'Vazirmatn', Tahoma, system-ui, sans-serif;
+  --site-font-body: 'IRANYekan', 'Vazirmatn', Tahoma, system-ui, sans-serif;
+  --site-spacing: 1;
+}
+
+@layer base {
+  html,
+  body {
+    font-family: var(--editor-font);
+    overflow-x: hidden;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Custom refined scrollbars for navy studio */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.28);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

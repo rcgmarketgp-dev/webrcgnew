@@ -1,0 +1,6 @@
+{
+  "name": "Arsi Studio — Visual Page Builder",
+  "description": "Visual website editor and content manager for Arsi Industrial Group (گروه صنعتی آرسی) woodworking and MDF CNC machinery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,330 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private profile for an authenticated Arsi Studio editor user.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "displayName", "email", "createdAt", "updatedAt"]
+    },
+    "StudioProject": {
+      "title": "StudioProject",
+      "description": "Saved Arsi Studio website project configuration, navigation menu, global theme tokens, assets, and connectors.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "siteMode": {
+          "type": "string",
+          "enum": ["dark", "light"]
+        },
+        "primaryColor": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^#[0-9a-fA-F]{3,8}$"
+        },
+        "accentColor": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 24,
+          "pattern": "^#[0-9a-fA-F]{3,8}$"
+        },
+        "headingFont": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "bodyFont": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "pageCount": {
+          "type": "integer"
+        },
+        "blockCount": {
+          "type": "integer"
+        },
+        "pageOrder": {
+          "type": "array",
+          "description": "Ordered list of page IDs belonging to this project (max 100)."
+        },
+        "navMenu": {
+          "type": "array",
+          "description": "Site navigation menu items (max 50)."
+        },
+        "theme": {
+          "type": "object",
+          "description": "Full GlobalThemeTokens map for the project."
+        },
+        "assets": {
+          "type": "array",
+          "description": "Media library asset records (max 100)."
+        },
+        "uploadedFonts": {
+          "type": "array",
+          "description": "Custom uploaded fonts metadata/data URLs (max 20)."
+        },
+        "connectors": {
+          "type": "object",
+          "description": "Enabled third-party integration connectors map."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "projectName",
+        "siteMode",
+        "primaryColor",
+        "accentColor",
+        "headingFont",
+        "bodyFont",
+        "pageCount",
+        "blockCount",
+        "pageOrder",
+        "navMenu",
+        "theme",
+        "assets",
+        "uploadedFonts",
+        "connectors",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StudioPage": {
+      "title": "StudioPage",
+      "description": "Individual website page and its ordered section blocks stored under a StudioProject.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "isHome": {
+          "type": "boolean"
+        },
+        "order": {
+          "type": "integer"
+        },
+        "seo": {
+          "type": "object",
+          "description": "PageSEO metadata map (title, description, ogImage)."
+        },
+        "blocks": {
+          "type": "array",
+          "description": "Ordered list of BlockInstance objects on this page (max 120)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "projectId",
+        "id",
+        "slug",
+        "title",
+        "isHome",
+        "order",
+        "seo",
+        "blocks",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProjectSnapshot": {
+      "title": "ProjectSnapshot",
+      "description": "Cloud backup snapshot checkpoint under a StudioProject.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "pageTitles": {
+          "type": "array",
+          "description": "Bounded list of page titles in this snapshot (max 30)."
+        },
+        "snapshotState": {
+          "type": "object",
+          "description": "Optional structured native map storing recoverable project and page state."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["ownerId", "projectId", "label", "pageTitles", "createdAt"]
+    },
+    "CustomerInquiry": {
+      "title": "CustomerInquiry",
+      "description": "Customer inquiry logged from Gmail into Arsi Studio CRM tracking.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "gmailMessageId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "senderName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "senderEmail": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 200
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "snippet": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "replied", "archived"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "gmailMessageId",
+        "senderName",
+        "senderEmail",
+        "subject",
+        "snippet",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user private profile documents (owner-only)."
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/StudioProject" },
+      "description": "Cloud-synced Arsi Studio project state, navigation, theme, assets, and connectors."
+    },
+    "/projects/{projectId}/pages/{pageId}": {
+      "schema": { "$ref": "#/entities/StudioPage" },
+      "description": "Persisted website pages and their section blocks under a StudioProject."
+    },
+    "/projects/{projectId}/snapshots/{snapshotId}": {
+      "schema": { "$ref": "#/entities/ProjectSnapshot" },
+      "description": "Cloud version snapshots belonging to a StudioProject."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": { "$ref": "#/entities/CustomerInquiry" },
+      "description": "Customer inquiries imported from Gmail by the signed-in user."
+    }
+  }
+}

@@ -1,0 +1,371 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Primitive Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOwner(userId) {
+      return isVerified() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'mas.seidgar@gmail.com'
+      );
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Blueprints ---
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'email', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'email', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid == userId
+        && data.uid == request.auth.uid
+        && isValidId(data.uid)
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 120
+        && data.email is string
+        && data.email.size() >= 3
+        && data.email.size() <= 200
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidStudioProject(data) {
+      return data.keys().hasAll([
+          'ownerId', 'projectName', 'siteMode', 'primaryColor',
+          'accentColor', 'headingFont', 'bodyFont', 'pageCount',
+          'blockCount', 'pageOrder', 'navMenu', 'theme',
+          'assets', 'uploadedFonts', 'connectors', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'projectName', 'siteMode', 'primaryColor',
+          'accentColor', 'headingFont', 'bodyFont', 'pageCount',
+          'blockCount', 'pageOrder', 'navMenu', 'theme',
+          'assets', 'uploadedFonts', 'connectors', 'createdAt', 'updatedAt'
+        ])
+        && data.ownerId is string
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.projectName is string
+        && data.projectName.size() >= 1
+        && data.projectName.size() <= 140
+        && data.siteMode in ['dark', 'light']
+        && data.primaryColor is string
+        && data.primaryColor.size() >= 4
+        && data.primaryColor.size() <= 24
+        && data.primaryColor.matches('^#[0-9a-fA-F]{3,8}$')
+        && data.accentColor is string
+        && data.accentColor.size() >= 4
+        && data.accentColor.size() <= 24
+        && data.accentColor.matches('^#[0-9a-fA-F]{3,8}$')
+        && data.headingFont is string
+        && data.headingFont.size() >= 1
+        && data.headingFont.size() <= 80
+        && data.bodyFont is string
+        && data.bodyFont.size() >= 1
+        && data.bodyFont.size() <= 80
+        && data.pageCount is int
+        && data.pageCount >= 1
+        && data.pageCount <= 100
+        && data.blockCount is int
+        && data.blockCount >= 0
+        && data.blockCount <= 500
+        && data.pageOrder is list
+        && data.pageOrder.size() <= 100
+        && (data.pageOrder.size() == 0 || data.pageOrder[0] is string)
+        && data.navMenu is list
+        && data.navMenu.size() <= 50
+        && (data.navMenu.size() == 0 || data.navMenu[0] is map)
+        && data.theme is map
+        && data.assets is list
+        && data.assets.size() <= 100
+        && (data.assets.size() == 0 || data.assets[0] is map)
+        && data.uploadedFonts is list
+        && data.uploadedFonts.size() <= 20
+        && (data.uploadedFonts.size() == 0 || data.uploadedFonts[0] is map)
+        && data.connectors is map
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidStudioPage(data, projectId, pageId) {
+      return data.keys().hasAll([
+          'ownerId', 'projectId', 'id', 'slug', 'title',
+          'isHome', 'order', 'seo', 'blocks', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'projectId', 'id', 'slug', 'title',
+          'isHome', 'order', 'seo', 'blocks', 'createdAt', 'updatedAt'
+        ])
+        && data.ownerId is string
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.projectId is string
+        && isValidId(data.projectId)
+        && data.projectId == projectId
+        && data.id is string
+        && isValidId(data.id)
+        && data.id == pageId
+        && data.slug is string
+        && data.slug.size() >= 1
+        && data.slug.size() <= 200
+        && data.title is string
+        && data.title.size() >= 1
+        && data.title.size() <= 140
+        && data.isHome is bool
+        && data.order is int
+        && data.order >= 0
+        && data.order <= 100
+        && data.seo is map
+        && data.seo.keys().hasAll(['title', 'description', 'ogImage'])
+        && data.seo.keys().hasOnly(['title', 'description', 'ogImage'])
+        && data.seo.title is string
+        && data.seo.title.size() <= 200
+        && data.seo.description is string
+        && data.seo.description.size() <= 600
+        && data.seo.ogImage is string
+        && data.seo.ogImage.size() <= 400000
+        && data.blocks is list
+        && data.blocks.size() <= 120
+        && (data.blocks.size() == 0 || data.blocks[0] is map)
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidProjectSnapshot(data, projectId) {
+      return data.keys().hasAll(['ownerId', 'projectId', 'label', 'pageTitles', 'createdAt'])
+        && data.keys().hasOnly(['ownerId', 'projectId', 'label', 'pageTitles', 'snapshotState', 'createdAt'])
+        && data.ownerId is string
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.projectId is string
+        && isValidId(data.projectId)
+        && data.projectId == projectId
+        && data.label is string
+        && data.label.size() >= 1
+        && data.label.size() <= 140
+        && data.pageTitles is list
+        && data.pageTitles.size() <= 30
+        && (data.pageTitles.size() == 0 || data.pageTitles[0] is string)
+        && (!data.keys().hasAny(['snapshotState']) || data.snapshotState is map)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidCustomerInquiry(data) {
+      return data.keys().hasAll([
+          'ownerId', 'gmailMessageId', 'senderName', 'senderEmail',
+          'subject', 'snippet', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'gmailMessageId', 'senderName', 'senderEmail',
+          'subject', 'snippet', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.ownerId is string
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.gmailMessageId is string
+        && isValidId(data.gmailMessageId)
+        && data.senderName is string
+        && data.senderName.size() >= 1
+        && data.senderName.size() <= 160
+        && data.senderEmail is string
+        && data.senderEmail.size() >= 3
+        && data.senderEmail.size() <= 200
+        && data.subject is string
+        && data.subject.size() >= 1
+        && data.subject.size() <= 240
+        && data.snippet is string
+        && data.snippet.size() <= 500
+        && data.status in ['new', 'replied', 'archived']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+
+    // 1. Private User Profiles (PII Isolated)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow create: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'updatedAt']);
+      allow delete: if isValidId(userId) && (isOwner(userId) || isAdmin());
+    }
+
+    // 2. Cloud Studio Projects
+    match /projects/{projectId} {
+      allow get: if isValidId(projectId)
+        && isVerified()
+        && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(projectId)
+        && isVerified()
+        && isValidStudioProject(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(projectId)
+        && isVerified()
+        && isValidStudioProject(incoming())
+        && (existing().ownerId == request.auth.uid || isAdmin())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'projectName', 'siteMode', 'primaryColor', 'accentColor',
+            'headingFont', 'bodyFont', 'pageCount', 'blockCount',
+            'pageOrder', 'navMenu', 'theme', 'assets', 'uploadedFonts',
+            'connectors', 'updatedAt'
+          ])
+        );
+      allow delete: if isValidId(projectId)
+        && isVerified()
+        && (existing().ownerId == request.auth.uid || isAdmin());
+
+      // Master Gate Subcollection: Persisted Pages & Blocks
+      match /pages/{pageId} {
+        allow get: if isValidId(projectId)
+          && isValidId(pageId)
+          && isVerified()
+          && (
+            get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid
+            || isAdmin()
+          );
+        allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+        allow create: if isValidId(projectId)
+          && isValidId(pageId)
+          && isVerified()
+          && isValidStudioPage(incoming(), projectId, pageId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/projects/$(projectId))
+          && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+        allow update: if isValidId(projectId)
+          && isValidId(pageId)
+          && isVerified()
+          && isValidStudioPage(incoming(), projectId, pageId)
+          && (
+            get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid
+            || isAdmin()
+          )
+          && incoming().ownerId == existing().ownerId
+          && incoming().projectId == existing().projectId
+          && incoming().id == existing().id
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && (
+            isAdmin() ||
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'slug', 'title', 'isHome', 'order', 'seo', 'blocks', 'updatedAt'
+            ])
+          );
+        allow delete: if isValidId(projectId)
+          && isValidId(pageId)
+          && isVerified()
+          && (
+            get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid
+            || isAdmin()
+          );
+      }
+
+      // Master Gate Subcollection: Cloud Snapshots
+      match /snapshots/{snapshotId} {
+        allow get: if isValidId(projectId)
+          && isValidId(snapshotId)
+          && isVerified()
+          && (
+            get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid
+            || isAdmin()
+          );
+        allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+        allow create: if isValidId(projectId)
+          && isValidId(snapshotId)
+          && isVerified()
+          && isValidProjectSnapshot(incoming(), projectId)
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/projects/$(projectId))
+          && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+        allow delete: if isValidId(projectId)
+          && isValidId(snapshotId)
+          && isVerified()
+          && (
+            get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid
+            || isAdmin()
+          );
+      }
+    }
+
+    // 3. Customer Inquiries (from Gmail -> Firestore CRM tracking)
+    match /inquiries/{inquiryId} {
+      allow get: if isValidId(inquiryId)
+        && isVerified()
+        && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isVerified() && resource.data.ownerId == request.auth.uid;
+      allow create: if isValidId(inquiryId)
+        && isVerified()
+        && isValidCustomerInquiry(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(inquiryId)
+        && isVerified()
+        && isValidCustomerInquiry(incoming())
+        && (existing().ownerId == request.auth.uid || isAdmin())
+        && incoming().ownerId == existing().ownerId
+        && incoming().gmailMessageId == existing().gmailMessageId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            existing().status != 'archived'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'snippet', 'updatedAt'])
+          )
+        );
+      allow delete: if isValidId(inquiryId)
+        && isVerified()
+        && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    // 4. Connection Health Check (non-PII test document)
+    match /test/connection {
+      allow get: if true;
+    }
+  }
+}
